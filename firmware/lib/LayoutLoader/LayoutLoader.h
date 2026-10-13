@@ -13,12 +13,12 @@ struct KeyAction {
 class LayoutLoader {
 public:
     static bool begin();
-    static KeyAction getKeyAction(uint8_t layer, uint8_t row, uint8_t col);
+    static const KeyAction& getKeyAction(uint8_t layer, uint8_t row, uint8_t col);
     static uint8_t getPackedByte(uint8_t layer, uint8_t row, uint8_t col);
-    static JsonDocument& getDoc() { return doc; }
-    
-    static bool writeConfig(const char* data, bool finish);
 
 private:
+    static void rebuildCache();
     static JsonDocument doc;
+    static KeyAction cache[4][4][3];
+    static KeyAction invalidAction;
 };

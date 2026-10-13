@@ -1,5 +1,4 @@
-import { dom } from "../dom.js";
-import { ModalHandler } from "./modal.js"; // ADD THIS IMPORT
+import { ModalHandler } from "./modal.js";
 
 export const TourHandler = {
     currentStep: 0,
@@ -7,27 +6,27 @@ export const TourHandler = {
         {
             target: "#main-sidebar ul",
             title: "Macro Layers",
-            text: "Organize your workflow across 4 distinct layers. Note that Layer 1 is reserved for native F-Keys to ensure maximum OS compatibility."
+            text: "Organize your workflow across 4 distinct layers. Layer 1 is reserved for native F13–F24 keys, while Layers 2–4 handle Shortcuts, Scripts, and Apps."
         },
         {
             target: ".macropad-container",
-            title: "The Visualizer",
-            text: "Click any key on the board to map it to a keyboard shortcut, an absolute script path (.bat, .py), or an application executable."
+            title: "Click or Drag & Drop",
+            text: "Click any key to edit its macro and execution toggles (Run as Admin / Headless), or drag and drop keys across the grid to swap their positions."
         },
         {
             target: ".rotary-encoder",
             title: "Tactile Control",
-            text: "Scroll the knob to adjust system volume. Click and drag left/right to toggle into Layer Navigation mode."
+            text: "Scroll the knob to adjust system volume. Click the knob to toggle into Layer Navigation mode."
         },
         {
-            target: "#sidebar-settings-btn",
-            title: "Hardware Settings",
-            text: "Access the lighting panel to customize RGB effects, breathing speeds, and brightness directly on the PCB."
+            target: "#ai-chat-widget",
+            title: "Floating AI Assistant",
+            text: "Click the bottom-right chat bar to open the AI Layout Assistant. Describe misclicks or grouping preferences and preview proposed changes live."
         },
         {
-            target: "#btn-export-json",
-            title: "Daemon Sync",
-            text: "Once finished, export your config to your Downloads folder. The Background Daemon will automatically detect it and sync it to the hardware!"
+            target: "#btn-upload-pad",
+            title: "Direct Hardware Sync",
+            text: "Export your config as a JSON file or click Upload to Pad to stream the layout directly to your ApexPad over USB Serial."
         }
     ],
 
@@ -84,7 +83,7 @@ export const TourHandler = {
         let tooltipLeft = rect.left;
 
         if (tooltipTop + 200 > window.innerHeight) {
-            tooltipTop = rect.top - 200;
+            tooltipTop = rect.top - 210;
         }
         if (tooltipLeft + 300 > window.innerWidth) {
             tooltipLeft = window.innerWidth - 320;
@@ -96,7 +95,6 @@ export const TourHandler = {
 
     end: () => {
         document.getElementById("tour-overlay").classList.add("hidden");
-        // FIX: Trigger the sample prompt immediately after the tour concludes
         setTimeout(() => ModalHandler.showSamplePrompt(), 300);
     }
 };

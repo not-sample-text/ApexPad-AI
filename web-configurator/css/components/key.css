@@ -1,52 +1,88 @@
 /* --- Keycaps --- */
 .key {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-
-	font-weight: bold;
-	font-size: 0.9rem;
-	text-align: center;
-	line-height: 1.2;
-	word-wrap: break-word;
-	color: var(--text-color);
-
-	padding: var(--spacing-xs);
-
-	background-color: var(--sidebar-bg-color);
-	border-radius: var(--radius-md);
-	border-bottom: 4px solid rgba(0, 0, 0, 0.3);
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-	cursor: pointer;
-	transition: all 0.1s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.88rem;
+    text-align: center;
+    line-height: 1.2;
+    word-wrap: break-word;
+    color: var(--text-color);
+    padding: var(--spacing-xs);
+    background-color: var(--sidebar-bg-color);
+    border-radius: var(--radius-md);
+    border-bottom: 4px solid rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    user-select: none;
+    transition:
+        transform 0.1s ease,
+        filter 0.1s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 @media (prefers-color-scheme: light) {
-	.key {
-		border-bottom: 4px solid #bfbfbf;
-	}
+    .key {
+        border-bottom: 4px solid #bfbfbf;
+    }
 }
 
 .key:hover {
-	filter: brightness(1.1);
+    filter: brightness(1.1);
 }
 
 .key:active,
 .key.pressed-simulation {
-	transform: translateY(4px);
-	border-bottom-width: 0px;
-	box-shadow: none;
+    transform: translateY(4px);
+    border-bottom-width: 0px;
+    box-shadow: none;
 }
-
-/* Note: Removed .read-only styles to allow interaction on Layer 1 */
 
 /* Unassigned Key State */
 .key.unassigned-key {
-	color: #666;
-	font-style: italic;
-	font-size: 0.8rem;
-	background-color: rgba(0, 0, 0, 0.2);
-	outline-style: dashed;
-	outline-width: 2px;
+    color: #666;
+    font-style: italic;
+    font-size: 0.8rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    outline-style: dashed;
+    outline-width: 2px;
+}
+
+/* Drag and Drop States */
+.key[draggable="true"] {
+    cursor: grab;
+}
+
+.key.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+}
+
+.key.drag-over {
+    outline: 2px solid #00e5ff;
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.5);
+    transform: scale(1.03);
+}
+
+/* AI Diff Highlight States */
+.key.ai-moved {
+    outline: 2px solid #00e5ff;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.35);
+}
+
+.key-diff-badge {
+    position: absolute;
+    bottom: 4px;
+    font-size: 0.62rem;
+    font-weight: normal;
+    color: #00e5ff;
+    background-color: rgba(0, 0, 0, 0.65);
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+    pointer-events: none;
 }

@@ -1,5 +1,7 @@
 #include "SerialManager.h"
 #include <LittleFS.h>
+#include <cstdarg>
+#include "LayoutLoader.h"
 #include "OledHandler.h"
 
 char SerialManager::serialBuffer[64];
@@ -7,7 +9,6 @@ uint8_t SerialManager::bufferIndex = 0;
 
 void SerialManager::begin() {
     Serial.begin(115200);
-    
     // Tell the Native USB CDC stack to instantly drop overflow logs 
     // rather than freezing the entire board waiting for the host to read them.
     Serial.setTxTimeoutMs(0);
@@ -17,7 +18,20 @@ void SerialManager::begin() {
 }
 
 void SerialManager::sendResponse(const char* str) {
-    Serial.print(str);
+    if (!str) return;
+    // Native USB CDC is non-blocking. Let the ESP32 core handle the FIFO buffer.
+    if (Serial) {
+        Serial.print(str);
+    }
+}
+
+void SerialManager::sendFormat(const char* fmt, ...) {
+    char buf[96];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    sendResponse(buf);
 }
 
 void SerialManager::check() {
@@ -55,7 +69,7 @@ void SerialManager::processByte(char c) {
 }
 
 void SerialManager::handleConfigRead() {
-    sendResponse("[CFG_READ_START]\n");
+    Serial.print("[CFG_READ_START]\n");
     
     File file = LittleFS.open("/config.json", FILE_READ);
     if (file) {
@@ -63,23 +77,26 @@ void SerialManager::handleConfigRead() {
         while (file.available()) {
             size_t len = file.readBytes(buf, sizeof(buf) - 1);
             buf[len] = '\0';
-            sendResponse(buf);
+            Serial.print(buf);
         }
         file.close();
     }
     
-    sendResponse("\n[CFG_READ_END]\n");
+    Serial.print("\n[CFG_READ_END]\n");
 }
 
 void SerialManager::handleConfigWrite() {
     OledHandler::showSystemMessage("SYNCING...");
     
+    if (LittleFS.exists("/config.bak")) {
+        LittleFS.remove("/config.bak");
+    }
     if (LittleFS.exists("/config.json")) {
         LittleFS.rename("/config.json", "/config.bak");
     }
     
     File file = LittleFS.open("/config.json", FILE_WRITE);
-    sendResponse("[CFG_WRITE_ACK]\n");
+    Serial.print("[CFG_WRITE_ACK]\n");
     
     uint32_t lastDataTime = millis();
     String currentLine = "";
@@ -90,11 +107,24 @@ void SerialManager::handleConfigWrite() {
             if (c == '\n' || c == '\r') {
                 if (currentLine.indexOf("[CFG_WRITE_EOF]") >= 0) {
                     file.close();
-                    LittleFS.remove("/config.bak");
-                    sendResponse("[CFG_WRITE_OK]\n");
-                    OledHandler::showSystemMessage("SUCCESS");
-                    delay(1000);
-                    ESP.restart();
+                    if (LayoutLoader::begin()) {
+                        LittleFS.remove("/config.bak");
+                        Serial.print("[CFG_WRITE_OK]\n");
+                        OledHandler::showSystemMessage("SUCCESS");
+                        delay(400);
+                        OledHandler::update();
+                    } else {
+                        LittleFS.remove("/config.json");
+                        if (LittleFS.exists("/config.bak")) {
+                            LittleFS.rename("/config.bak", "/config.json");
+                        }
+                        LayoutLoader::begin();
+                        Serial.print("[CFG_WRITE_ERR]\n");
+                        OledHandler::showSystemMessage("ERROR");
+                        delay(800);
+                        OledHandler::update();
+                    }
+                    return;
                 } else {
                     if (currentLine.length() > 0) {
                         file.print(currentLine);
@@ -108,7 +138,6 @@ void SerialManager::handleConfigWrite() {
             lastDataTime = millis();
         }
         
-        // Timeout failsafe (5 seconds)
         if (millis() - lastDataTime > 5000) {
             file.close();
             LittleFS.remove("/config.json");
@@ -116,11 +145,14 @@ void SerialManager::handleConfigWrite() {
             if (LittleFS.exists("/config.bak")) {
                 LittleFS.rename("/config.bak", "/config.json");
             }
+            LayoutLoader::begin();
             
-            sendResponse("[CFG_WRITE_ERR]\n");
+            Serial.print("[CFG_WRITE_ERR]\n");
             OledHandler::showSystemMessage("ERROR");
-            delay(2000);
-            ESP.restart();
+            delay(800);
+            OledHandler::update();
+            return;
         }
+        delay(1);
     }
 }

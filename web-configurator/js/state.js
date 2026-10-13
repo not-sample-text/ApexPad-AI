@@ -4,7 +4,13 @@ export const state = {
     activeView: "KEYS",
     isKnobNavMode: false,
     volume: 50,
-    knobRotation: 0
+    knobRotation: 0,
+    justDragged: false,
+    aiPreview: {
+        active: false,
+        backupConfig: null,
+        movedMap: {} // { layerId: { "C0R0": "C1R2" } } -> maps newCoord to oldCoord
+    }
 };
 
 export const defaultLayer1Keys = {};
@@ -13,7 +19,7 @@ for (let r = 0; r < 4; r++) {
     for (let c = 0; c < 3; c++) {
         defaultLayer1Keys[`C${c}R${r}`] = {
             label: `F${fCount}`,
-            value: `F${fCount}`, // FIX: This is now the actual F13-F24 string, not "F_KEY"
+            value: `F${fCount}`,
             type: "KEY"
         };
         fCount++;
@@ -27,13 +33,7 @@ export const configData = {
         { id: 1, name: "Shortcuts", keys: {} },
         { id: 2, name: "Commands", keys: {} },
         { id: 3, name: "Launcher", keys: {} }
-    ],
-    lighting: {
-        mode: "SOLID",
-        brightness: 128,
-        speed: 10,
-        color: "#00e5ff"
-    }
+    ]
 };
 
 export const layerNameMap = {

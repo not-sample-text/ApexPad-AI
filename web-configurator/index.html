@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
-    <title>Macropad Web Configurator</title>
+    <title>ApexPad AI Configurator</title>
 </head>
 
 <body>
@@ -16,17 +16,32 @@
             <div class="bar"></div>
             <div class="bar"></div>
         </div>
-        <div class="title">Macropad Web Configurator</div>
-        <div style="display: flex; gap: 10px; margin-left: auto;">
-            <input type="file" id="import-file-input" hidden accept=".json">
-            <button id="btn-import-json" class="btn-secondary" style="font-size: 0.8rem;">
-                <i class="ti ti-upload"></i> Import
+        <div class="title">ApexPad AI Configurator</div>
+
+        <div class="navbar-actions">
+            <div id="device-status-pill" class="status-pill disconnected"
+                title="Click to open Hardware & Debug Console">
+                <span class="status-dot"></span>
+                <span id="device-status-text">Offline</span>
+            </div>
+
+            <button id="btn-open-debug" class="btn-secondary nav-btn" title="Hardware & Live Debug Console">
+                <i class="ti ti-terminal-2"></i> Console
             </button>
-            <button id="btn-export-json" class="btn-primary" style="font-size: 0.8rem;">
-                <i class="ti ti-download"></i> Export JSON
+
+            <input type="file" id="import-file-input" hidden accept=".json">
+            <button id="btn-import-json" class="btn-secondary nav-btn">
+                <i class="ti ti-file-import"></i> Import
+            </button>
+            <button id="btn-export-json" class="btn-secondary nav-btn">
+                <i class="ti ti-download"></i> Export
+            </button>
+            <button id="btn-upload-pad" class="btn-primary nav-btn">
+                <i class="ti ti-cpu"></i> Upload to Pad
             </button>
         </div>
     </div>
+
     <div class="sidebar" id="main-sidebar">
         <div id="sidebar-layers-view">
             <ul>
@@ -59,67 +74,45 @@
                     <ul class="key-list" id="layer-list-3"></ul>
                 </li>
             </ul>
-            <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
-                <div class="category-header" id="sidebar-settings-btn">
-                    <i class="ti ti-settings category-icon" style="transform: none;"></i>
-                    <p class="category">Lighting & Settings</p>
-                </div>
-            </div>
         </div>
-        <div id="sidebar-controls-view" class="lighting-controls-panel hidden">
-            <div class="category-header" id="back-to-layers-btn" style="margin-bottom: 15px; padding-left:0;">
-                <i class="ti ti-arrow-left"></i>
-                <p class="category">Back to Layers</p>
-            </div>
-            <div class="control-group">
-                <label>Effect Mode</label>
-                <select id="light-mode">
-                    <option value="SOLID">Solid Color</option>
-                    <option value="RAINBOW">Rainbow Wave</option>
-                    <option value="BREATHING">Breathing</option>
-                    <option value="REACTIVE">Reactive</option>
-                    <option value="OFF">Off</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>Color <span id="color-hex">#00E5FF</span></label>
-                <div class="color-picker-wrapper">
-                    <input type="color" id="light-color" value="#00e5ff">
-                </div>
-            </div>
-            <div class="control-group">
-                <label>Brightness <span id="val-brightness">50%</span></label>
-                <input type="range" id="light-brightness" min="0" max="255">
-            </div>
-            <div class="control-group">
-                <label>Speed <span id="val-speed">10</span></label>
-                <input type="range" id="light-speed" min="1" max="20">
-            </div>
-        </div>
-        <div class="resizer"></div>
     </div>
+
     <main>
+        <div id="ai-sandbox-banner" class="ai-sandbox-banner hidden">
+            <div class="sandbox-info">
+                <i class="ti ti-sparkles"></i>
+                <div>
+                    <strong>AI Suggested Layout Preview</strong>
+                    <span id="ai-sandbox-summary">Review highlighted changes below. You can still drag-and-drop keys to
+                        fine-tune.</span>
+                </div>
+            </div>
+            <div class="sandbox-actions">
+                <button id="btn-ai-discard" class="btn-secondary">Discard</button>
+                <button id="btn-ai-accept" class="btn-primary">Accept Changes</button>
+            </div>
+        </div>
+
         <h2 id="layer-title">Select Layer</h2>
+        <p class="drag-hint" id="drag-hint">Tip: Click a key to edit, or drag &amp; drop keys to swap positions.</p>
+
         <div class="macropad-container">
             <div class="oled-screen">
                 <div class="oled-header">
                     <span id="oled-layer-name">FN KEYS</span>
                     <div class="oled-status-icons">
-                        <i class="ti ti-bluetooth"></i>
-                        <span class="battery-percent">85%</span>
-                        <div class="battery-wrapper">
-                            <i class="ti ti-battery-3"></i>
-                            <i class="ti ti-bolt charging-indicator"></i>
-                        </div>
+                        <i class="ti ti-usb"></i>
                     </div>
                 </div>
                 <div class="oled-main">
                     <span id="oled-display-text">Ready</span>
                 </div>
             </div>
+
             <div class="rotary-encoder">
                 <div class="knob"></div>
             </div>
+
             <div class="key" data-id="C0R0">C0R0</div>
             <div class="key" data-id="C1R0">C1R0</div>
             <div class="key" data-id="C2R0">C2R0</div>
@@ -133,60 +126,75 @@
             <div class="key" data-id="C1R3">C1R3</div>
             <div class="key" data-id="C2R3">C2R3</div>
         </div>
-        <div class="lighting-view hidden">
-            <div class="chassis-shape">
-                <div class="pcb-column left">
-                    <div class="led-component" data-index="0">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="1">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="2">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="3">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="4">
-                        <div class="emitter"></div>
-                    </div>
-                </div>
-                <div class="pcb-column center">
-                    <div class="esp32-component">
-                        <span class="chip-label">ESP32-S3</span>
-                    </div>
-                </div>
-                <div class="pcb-column right">
-                    <div class="led-component" data-index="5">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="6">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="7">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="8">
-                        <div class="emitter"></div>
-                    </div>
-                    <div class="led-component" data-index="9">
-                        <div class="emitter"></div>
-                    </div>
+    </main>
+
+    <!-- MESSENGER-STYLE FLOATING AI CHAT WIDGET -->
+    <div id="ai-chat-widget" class="ai-chat-widget collapsed">
+        <div id="ai-chat-header" class="ai-chat-header">
+            <div class="ai-chat-title">
+                <span class="ai-avatar"><i class="ti ti-sparkles"></i></span>
+                <div>
+                    <strong>AI Layout Assistant</strong>
+                    <small>Ollama + Simulated Annealing</small>
                 </div>
             </div>
+            <div class="ai-header-controls">
+                <button id="btn-ai-settings" class="ai-icon-btn" title="AI Scope & Model Settings">
+                    <i class="ti ti-adjustments-horizontal"></i>
+                </button>
+                <button id="btn-ai-toggle" class="ai-icon-btn" title="Minimize / Expand">
+                    <i class="ti ti-chevron-up" id="ai-toggle-icon"></i>
+                </button>
+            </div>
         </div>
-    </main>
+
+        <div id="ai-chat-body" class="ai-chat-body">
+            <div id="ai-settings-drawer" class="ai-settings-drawer hidden">
+                <div class="control-group">
+                    <label for="ai-target-layer">Target Scope</label>
+                    <select id="ai-target-layer">
+                        <option value="active">Active Layer Only</option>
+                        <option value="all">All Editable Layers (2–4)</option>
+                        <option value="1">Layer 2 - Shortcuts</option>
+                        <option value="2">Layer 3 - Commands</option>
+                        <option value="3">Layer 4 - Launcher</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="ai-model-input">Local Ollama Model</label>
+                    <input type="text" id="ai-model-input" value="llama3.2" placeholder="e.g., llama3.2">
+                </div>
+            </div>
+
+            <div id="ai-chat-log" class="ai-chat-log">
+                <div class="ai-msg assistant">
+                    Hi! Tell me which keys you misclick or how you want your layer grouped, and I'll generate an
+                    ergonomic layout preview.
+                </div>
+            </div>
+
+            <div class="ai-composer">
+                <textarea id="ai-prompt-input" rows="1"
+                    placeholder="Ask AI to rearrange keys... (Enter to send)"></textarea>
+                <button id="btn-ai-optimize" class="ai-send-btn" title="Send (Enter)">
+                    <i class="ti ti-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KEY EDIT MODAL -->
     <div id="config-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Edit Key: <span id="modal-key-id">...</span></h3>
             </div>
+
             <div class="modal-body">
                 <div id="sample-prompt" class="form-group input-type-container hidden">
                     <label>Welcome</label>
                     <div style="display:flex;flex-direction:column;gap:8px;">
-                        <p>Looks like this is your first time on the website. Load a sample configuration to get
+                        <p>Looks like this is your first time on the configurator. Load a sample configuration to get
                             started?</p>
                         <div style="display:flex;gap:8px;justify-content:flex-end;">
                             <button id="btn-sample-cancel" class="btn-secondary">No Thanks</button>
@@ -194,11 +202,13 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label for="key-label">Display Name</label>
                     <input type="text" id="key-label" placeholder="e.g., Copy">
-                    <small>What shows up on the screen/sidebar.</small>
+                    <small>What shows up on the OLED screen and sidebar.</small>
                 </div>
+
                 <div id="input-container-shortcut" class="form-group input-type-container hidden">
                     <label>Shortcut Combination</label>
                     <div class="shortcut-recorder" tabindex="0">
@@ -207,33 +217,44 @@
                     </div>
                     <input type="hidden" id="shortcut-value">
                 </div>
+
                 <div id="input-container-script" class="form-group input-type-container hidden">
                     <label>Script Path or URL</label>
                     <input type="text" id="script-path-display" placeholder="e.g., C:\Scripts\organize.bat">
                     <small>Paste the full absolute path or a web link (https://...)</small>
                 </div>
+
                 <div id="input-container-app" class="form-group input-type-container hidden">
                     <label>Application Path</label>
                     <input type="text" id="app-path-input" placeholder="e.g., C:\Windows\system32\calc.exe">
                     <small>Paste the full absolute path to the executable.</small>
                 </div>
 
-                <!-- NEW EXECUTION OPTIONS -->
+                <!-- EXECUTION TOGGLE SWITCHES -->
                 <div id="execution-options" class="form-group input-type-container hidden">
                     <label>Execution Options</label>
-                    <div style="display: flex; gap: 15px; margin-top: 5px;">
-                        <label
-                            style="font-weight: normal; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" id="opt-run-admin"> Run as Administrator
+                    <div class="toggle-group">
+                        <label class="toggle-switch-row" for="opt-run-admin">
+                            <span class="toggle-text">
+                                <strong>Run as Administrator</strong>
+                                <small>Launch with elevated UAC privileges</small>
+                            </span>
+                            <input type="checkbox" id="opt-run-admin" class="toggle-input">
+                            <span class="toggle-slider"></span>
                         </label>
-                        <label
-                            style="font-weight: normal; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" id="opt-run-headless"> Run Headless (Hidden)
+
+                        <label class="toggle-switch-row" for="opt-run-headless">
+                            <span class="toggle-text">
+                                <strong>Run Headless (Hidden)</strong>
+                                <small>Suppress terminal/console window on launch</small>
+                            </span>
+                            <input type="checkbox" id="opt-run-headless" class="toggle-input">
+                            <span class="toggle-slider"></span>
                         </label>
                     </div>
                 </div>
-
             </div>
+
             <div class="modal-footer">
                 <button id="btn-cancel" class="btn-secondary">Cancel</button>
                 <button id="btn-reset" class="btn-secondary">Reset</button>
@@ -242,15 +263,63 @@
         </div>
     </div>
 
+    <!-- HARDWARE & LIVE DEBUG CONSOLE MODAL -->
+    <div id="debug-modal" class="modal-overlay hidden">
+        <div class="modal-content debug-modal-content">
+            <div class="modal-header debug-modal-header">
+                <h3><i class="ti ti-terminal-2"></i> ApexPad Daemon &amp; Debug Console</h3>
+                <button id="btn-close-debug" class="btn-secondary" style="padding: 4px 10px;">Close</button>
+            </div>
+            <div class="modal-body">
+                <div class="daemon-stats-bar">
+                    <div class="stat-box">
+                        <span class="stat-label">Serial Port</span>
+                        <strong id="debug-port-val">Scanning...</strong>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Sync State</span>
+                        <strong id="debug-sync-val">IDLE</strong>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Logged Keypresses</span>
+                        <strong id="debug-keys-val">0</strong>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Layer Switches</span>
+                        <strong id="debug-layers-val">0</strong>
+                    </div>
+                </div>
+
+                <div class="daemon-actions-bar">
+                    <button id="btn-recover-pad" class="btn-secondary">
+                        <i class="ti ti-download"></i> Recover Config from Pad
+                    </button>
+                    <button id="btn-force-dump" class="btn-secondary">
+                        <i class="ti ti-medicine-syrup"></i> Force Dump to Desktop
+                    </button>
+                    <button id="btn-reset-telemetry" class="btn-secondary">
+                        <i class="ti ti-eraser"></i> Reset Telemetry
+                    </button>
+                    <button id="btn-clear-logs" class="btn-secondary">
+                        <i class="ti ti-trash"></i> Clear Logs
+                    </button>
+                </div>
+
+                <pre id="debug-log-output" class="debug-log-output">Connecting to local ApexPad daemon...</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- WELCOME MODAL -->
     <div id="welcome-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Welcome to ApexPad</h3>
+                <h3>Welcome to ApexPad AI</h3>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <p>Looks like this is your first time here. Would you like a quick tour of how the configurator
-                        syncs with your hardware?</p>
+                    <p>Looks like this is your first time here. Would you like a quick tour of how the configurator and
+                        local AI assistant work?</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -259,6 +328,8 @@
             </div>
         </div>
     </div>
+
+    <!-- TOUR OVERLAY -->
     <div id="tour-overlay" class="hidden">
         <div id="tour-highlight"></div>
         <div id="tour-tooltip">
@@ -275,6 +346,7 @@
             </div>
         </div>
     </div>
+
     <script type="module" src="js/main.js"></script>
 </body>
 

@@ -5,16 +5,17 @@ import { WelcomeHandler } from "./handlers/welcome.js";
 import { KnobHandler } from "./handlers/knob.js";
 import { IOHandler } from "./handlers/io.js";
 import { OLEDHandler } from "./handlers/oled.js";
-import { LightingHandler } from "./handlers/lighting.js";
+import { KeyHandler } from "./handlers/key.js";
+import { AIHandler } from "./handlers/ai.js";
 import { PersistenceHandler } from "./utils/storage.js";
 import { state } from "./state.js";
 import { TourHandler } from "./handlers/tour.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     // 1. Render Initial Sidebar
     SidebarHandler.render();
 
-    // 2. Bind Listeners
+    // 2. Bind Layer Headers
     const headers = document.querySelectorAll(
         ".sidebar .category-header[data-layer]"
     );
@@ -24,19 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
+    // 3. Bind Key Clicks & Drag-and-Drop
+    KeyHandler.initDragAndDrop();
+
     dom.keys.forEach((key) => {
         key.addEventListener("click", () => {
-            const text = key.innerText;
-            OLEDHandler.updateMain(text);
+            if (state.justDragged) return;
+            const keyId = key.getAttribute("data-id");
+            const savedKey =
+                state.activeLayerIndex >= 0
+                    ? key.querySelector("span")?.innerText || key.innerText
+                    : key.innerText;
+            OLEDHandler.updateMain(savedKey);
 
-            // Only open modal if keys are visible
-            if (
-                !document
-                    .querySelector(".macropad-container")
-                    .classList.contains("hidden")
-            ) {
-                // ! FIX: Removed the check that blocked Layer 0 clicks
-                ModalHandler.open(key.getAttribute("data-id"), text);
+            if (!dom.macropad.classList.contains("hidden")) {
+                ModalHandler.open(keyId);
             }
         });
     });
@@ -45,20 +48,20 @@ document.addEventListener("DOMContentLoaded", () => {
         dom.hamburger.addEventListener("click", SidebarHandler.toggleSidebar);
     }
 
-    // 3. Initialize Sub-Systems
+    // 4. Initialize Sub-Systems
     ModalHandler.init();
     WelcomeHandler.init();
     KnobHandler.init();
     IOHandler.init();
-    LightingHandler.init();
     TourHandler.init();
-    // 4. Load Data (if nothing in localStorage, offer sample config)
-    const loaded = PersistenceHandler.loadFromLocal();
+    AIHandler.init();
+
+    // 5. Load Configuration from Python Daemon or LocalStorage
+    const loaded = await PersistenceHandler.loadFromBackendOrLocal();
     if (!loaded) {
-        // Show the dedicated welcome modal for first-run
         WelcomeHandler.show();
     }
 
-    // 5. Auto-open first layer
+    // 6. Auto-open first layer
     if (headers.length > 0) headers[0].click();
 });

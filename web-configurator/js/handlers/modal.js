@@ -23,7 +23,6 @@ export const ModalHandler = {
                 const existing = dom.modal.shortcutValue.value
                     ? dom.modal.shortcutValue.value.split(" + ").filter(Boolean)
                     : [];
-
                 const canonicalMods = ["Meta", "Ctrl", "Shift", "Alt"];
                 const modsSet = new Set(
                     existing.filter((i) => canonicalMods.includes(i))
@@ -84,9 +83,8 @@ export const ModalHandler = {
             const ua = navigator.userAgent || "";
             const platform = navigator.platform || "";
             if (/Mac|iPhone|iPad|iPod/.test(ua) || /Mac/.test(platform))
-                return "⌘";
-            if (/Win/.test(platform) || /Windows/.test(ua)) return "⊞";
-            if (/Linux/.test(platform) || /X11/.test(ua)) return "Meta";
+                return "Cmd";
+            if (/Win/.test(platform) || /Windows/.test(ua)) return "Win";
             return "Meta";
         } catch (e) {
             return "Meta";
@@ -120,7 +118,6 @@ export const ModalHandler = {
             const displayLabel = label;
             const token =
                 label === metaLabel && metaLabel !== "Meta" ? "Meta" : label;
-
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "modifier-btn btn-secondary";
@@ -136,7 +133,6 @@ export const ModalHandler = {
                 let items = hidden.value
                     ? hidden.value.split(" + ").filter(Boolean)
                     : [];
-
                 const canonical = ["Meta", "Ctrl", "Shift", "Alt"];
                 let main = items.find((i) => !canonical.includes(i));
                 let mods = items.filter((i) => canonical.includes(i));
@@ -158,17 +154,19 @@ export const ModalHandler = {
                     : "Click to Record...";
 
                 ModalHandler.updateModifierButtons();
+
                 if (recorder) setTimeout(() => recorder.focus(), 0);
             });
+
             bar.appendChild(btn);
         });
+
         container.appendChild(bar);
     },
 
     updateModifierButtons: () => {
         const container = document.getElementById("input-container-shortcut");
         if (!container) return;
-
         const hiddenVal = dom.modal.shortcutValue.value || "";
         const mods = hiddenVal
             ? hiddenVal
@@ -176,32 +174,33 @@ export const ModalHandler = {
                   .filter(Boolean)
                   .filter((i) => ["Meta", "Ctrl", "Shift", "Alt"].includes(i))
             : [];
-
         container.querySelectorAll(".modifier-btn").forEach((btn) => {
             const token = btn.dataset.token;
             if (token) btn.classList.toggle("active", mods.includes(token));
         });
     },
 
-    open: (keyId, currentText) => {
+    open: (keyId) => {
         dom.modal.keyId.innerText = keyId;
-        dom.modal.labelInput.value =
-            currentText === "Unassigned" ? "" : currentText;
+        const savedKeyData =
+            configData.layers[state.activeLayerIndex].keys[keyId];
+        const currentLabel = savedKeyData ? savedKeyData.label : "";
+
+        dom.modal.labelInput.value = currentLabel;
         dom.modal.overlay.classList.remove("hidden");
 
         document
             .querySelectorAll(".input-type-container")
             .forEach((el) => el.classList.add("hidden"));
 
-        const savedKeyData =
-            configData.layers[state.activeLayerIndex].keys[keyId];
         const savedValue = savedKeyData ? savedKeyData.value : "";
 
-        // Load the saved execution options if they exist
-        dom.modal.runAdmin.checked =
-            savedKeyData && savedKeyData.runAsAdmin ? true : false;
-        dom.modal.runHeadless.checked =
-            savedKeyData && savedKeyData.runHeadless ? true : false;
+        dom.modal.runAdmin.checked = Boolean(
+            savedKeyData && savedKeyData.runAsAdmin
+        );
+        dom.modal.runHeadless.checked = Boolean(
+            savedKeyData && savedKeyData.runHeadless
+        );
 
         const existingNote = document.getElementById("layer0-note");
         if (existingNote) existingNote.remove();
@@ -212,7 +211,7 @@ export const ModalHandler = {
             note.style.cssText =
                 "color: #888; font-size: 0.85rem; margin-top: 15px; font-style: italic;";
             note.innerText =
-                "Note: Layer 1 is reserved for native F-Keys to ensure OS compatibility. You can change the display name, but the macro function cannot be edited.";
+                "Note: Layer 1 is reserved for native F13–F24 keys. You can customize the display label, while the F-key value stays locked.";
             dom.modal.labelInput.parentNode.after(note);
         } else if (state.activeLayerIndex === 1) {
             document
@@ -288,7 +287,6 @@ export const ModalHandler = {
                 layerIdx === 1 ? "SHORTCUT" : layerIdx === 2 ? "SCRIPT" : "APP"
         };
 
-        // Save execution options for Scripts and Apps
         if (layerIdx === 2 || layerIdx === 3) {
             configData.layers[layerIdx].keys[keyId].runAsAdmin =
                 dom.modal.runAdmin.checked;
@@ -316,12 +314,10 @@ export const ModalHandler = {
 
     showSamplePrompt: () => {
         if (!dom.modal.samplePrompt) return;
-        const headerEl = document.querySelector(".modal-header");
-        const footerEl = document.querySelector(".modal-footer");
-
+        const headerEl = document.querySelector("#config-modal .modal-header");
+        const footerEl = document.querySelector("#config-modal .modal-footer");
         _savedModalHeaderHTML = headerEl ? headerEl.innerHTML : null;
         if (headerEl) headerEl.innerHTML = "<h3>Setup Complete</h3>";
-
         _savedFooterHidden = footerEl
             ? footerEl.classList.contains("hidden")
             : false;
@@ -333,6 +329,7 @@ export const ModalHandler = {
         document
             .querySelectorAll(".input-type-container")
             .forEach((el) => el.classList.add("hidden"));
+        dom.modal.samplePrompt.classList.remove("hidden");
 
         dom.modal.sampleLoadBtn.onclick = async () => {
             try {
@@ -340,7 +337,6 @@ export const ModalHandler = {
                 if (!res.ok)
                     throw new Error("Failed to fetch generated-config.json");
                 const parsed = await res.json();
-
                 PersistenceHandler.applyConfig(parsed);
                 PersistenceHandler.saveToLocal();
             } catch (e) {
@@ -359,17 +355,14 @@ export const ModalHandler = {
         if (!dom.modal.samplePrompt) return;
         dom.modal.samplePrompt.classList.add("hidden");
         dom.modal.overlay.classList.add("hidden");
-
-        const headerEl = document.querySelector(".modal-header");
-        const footerEl = document.querySelector(".modal-footer");
-
+        const headerEl = document.querySelector("#config-modal .modal-header");
+        const footerEl = document.querySelector("#config-modal .modal-footer");
         if (headerEl && _savedModalHeaderHTML !== null)
             headerEl.innerHTML = _savedModalHeaderHTML;
         if (footerEl) {
             if (!_savedFooterHidden) footerEl.classList.remove("hidden");
             else footerEl.classList.add("hidden");
         }
-
         dom.modal.shortcutDisplay.innerText = dom.modal.shortcutValue.value
             ? ModalHandler.formatDisplayFromValue(dom.modal.shortcutValue.value)
             : "Click to Record...";
@@ -382,7 +375,6 @@ export const ModalHandler = {
         dom.modal.shortcutDisplay.innerText = "Click to Record...";
         dom.modal.scriptDisplay.value = "";
         dom.modal.appInput.value = "";
-
         dom.modal.runAdmin.checked = false;
         dom.modal.runHeadless.checked = false;
 
@@ -391,12 +383,10 @@ export const ModalHandler = {
             recorder.classList.remove("recording");
             recorder.blur();
         }
-
         if (globalKeydownHandler) {
             document.removeEventListener("keydown", globalKeydownHandler, true);
             globalKeydownHandler = null;
         }
-
         ModalHandler.updateModifierButtons();
     },
 

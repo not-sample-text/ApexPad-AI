@@ -3,7 +3,6 @@ import { configData, state } from "../state.js";
 import { OLEDHandler } from "./oled.js";
 import { KeyHandler } from "./key.js";
 import { ModalHandler } from "./modal.js";
-import { LightingHandler } from "./lighting.js";
 
 export const SidebarHandler = {
     render: () => {
@@ -12,6 +11,7 @@ export const SidebarHandler = {
                 `layer-list-${index}`
             );
             if (!listContainer) return;
+
             listContainer.innerHTML = "";
 
             for (let r = 0; r < 4; r++) {
@@ -41,121 +41,49 @@ export const SidebarHandler = {
                             );
                             if (headers[index]) headers[index].click();
                         }
+
                         KeyHandler.simulatePress(keyId);
                         const label =
                             keyData && keyData.label
                                 ? keyData.label
                                 : "Unassigned";
                         OLEDHandler.updateMain(label);
-                        setTimeout(() => ModalHandler.open(keyId, label), 300);
+                        setTimeout(() => ModalHandler.open(keyId, label), 250);
                     });
+
                     listContainer.appendChild(li);
                 }
             }
         });
-
-        const settingsBtn = document.getElementById("sidebar-settings-btn");
-        if (settingsBtn) {
-            settingsBtn.addEventListener("click", () => {
-                SidebarHandler.switchToSettings();
-            });
-        }
-
-        const backBtn = document.getElementById("back-to-layers-btn");
-        if (backBtn) {
-            backBtn.addEventListener("click", () => {
-                const targetIndex =
-                    state.lastActiveLayerIndex !== undefined &&
-                    state.lastActiveLayerIndex !== -1
-                        ? state.lastActiveLayerIndex
-                        : 0;
-                const headers = document.querySelectorAll(
-                    ".sidebar .category-header[data-layer]"
-                );
-                if (headers[targetIndex]) headers[targetIndex].click();
-            });
-        }
     },
 
     toggleLayer: (index, header) => {
-        SidebarHandler.switchView("KEYS");
-        document
-            .getElementById("sidebar-layers-view")
-            .classList.remove("hidden");
-        document
-            .getElementById("sidebar-controls-view")
-            .classList.add("hidden");
-
         const keyList = header.nextElementSibling;
         const icon = header.querySelector(".category-icon");
         const name = header.querySelector(".category").innerText;
 
         document
             .querySelectorAll(".sidebar .key-list")
-            .forEach((el) => el.classList.remove("open", "read-only-list"));
+            .forEach((el) => el.classList.remove("open"));
         document
             .querySelectorAll(".sidebar .category-icon")
             .forEach((el) => el.classList.remove("open"));
-
-        // FIX: Manage Active State on Headers
         document
             .querySelectorAll(".sidebar .category-header")
             .forEach((el) => el.classList.remove("active"));
-        header.classList.add("active");
 
+        header.classList.add("active");
         keyList.classList.add("open");
         icon.classList.add("open");
-        dom.title.textContent = name;
 
+        dom.title.textContent = name;
         state.activeLayerIndex = index;
         OLEDHandler.updateHeader(name, index);
         KeyHandler.updateFromData(index);
-        dom.macropad.classList.remove("read-only");
     },
 
     toggleSidebar: () => {
         dom.sidebar.classList.toggle("collapsed");
         dom.hamburger.classList.toggle("active");
-    },
-
-    switchToSettings: () => {
-        if (state.activeLayerIndex !== -1) {
-            state.lastActiveLayerIndex = state.activeLayerIndex;
-        }
-        document.getElementById("sidebar-layers-view").classList.add("hidden");
-        document
-            .getElementById("sidebar-controls-view")
-            .classList.remove("hidden");
-
-        document
-            .querySelectorAll(".sidebar .key-list")
-            .forEach((el) => el.classList.remove("open"));
-        document
-            .querySelectorAll(".sidebar .category-icon")
-            .forEach((el) => el.classList.remove("open"));
-
-        // FIX: Remove active state from layer headers, highlight settings header
-        document
-            .querySelectorAll(".sidebar .category-header")
-            .forEach((el) => el.classList.remove("active"));
-        const settingsBtn = document.getElementById("sidebar-settings-btn");
-        if (settingsBtn) settingsBtn.classList.add("active");
-
-        dom.title.innerText = "LIGHTING & SETTINGS";
-        SidebarHandler.switchView("LIGHTING");
-        state.activeLayerIndex = -1;
-        OLEDHandler.updateMain("SETTINGS");
-    },
-
-    switchView: (viewName) => {
-        const keyContainer = document.querySelector(".macropad-container");
-        const lightingView = document.querySelector(".lighting-view");
-        if (viewName === "LIGHTING") {
-            keyContainer.classList.add("hidden");
-            lightingView.classList.remove("hidden");
-        } else {
-            keyContainer.classList.remove("hidden");
-            lightingView.classList.add("hidden");
-        }
     }
 };

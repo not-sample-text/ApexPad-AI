@@ -4,6 +4,7 @@
 #include <Adafruit_SSD1306.h>
 #include "MacropadApp.h"
 #include "BoardSupport.h"
+#include "config.h"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 32
@@ -18,8 +19,10 @@ static const unsigned char PROGMEM lightning_bolt[] = {
 };
 
 void OledHandler::begin() {
+    Wire.begin(kOledSdaPin, kOledSclPin, 400000);
+    Wire.setTimeOut(25); // Prevent infinite I2C bus lockups
+
     if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-        Serial.println(F("[ERROR] SSD1306 allocation failed"));
         return;
     }
     display.clearDisplay();
@@ -62,13 +65,11 @@ void OledHandler::update() {
     // Body: Centered Active Key / Action Label
     display.setTextSize(1);
     const char* nickname = MacropadApp::getLastKeyLabel();
-
     int16_t x1, y1;
     uint16_t w, h;
     display.getTextBounds(nickname, 0, 12, &x1, &y1, &w, &h);
     int centerTextX = (128 - w) / 2;
     if (centerTextX < 0) centerTextX = 0;
-
     display.setCursor(centerTextX, 12);
     display.print(nickname);
 
@@ -90,7 +91,6 @@ void OledHandler::showSystemMessage(const char* msg) {
     display.getTextBounds(msg, 0, 10, &x1, &y1, &w, &h);
     display.setCursor((128 - w) / 2, 10);
     display.print(msg);
-
     display.display();
 }
 
@@ -101,9 +101,9 @@ void OledHandler::clear() {
 
 void OledHandler::showBootAnimation() {
     display.clearDisplay();
-    for (int16_t x = 0; x <= SCREEN_WIDTH; x += 4) {
+    for (int16_t x = 0; x <= SCREEN_WIDTH; x += 8) {
         display.fillRect(0, 0, x, SCREEN_HEIGHT, SSD1306_WHITE);
         display.display();
     }
-    delay(150);
+    delay(80);
 }

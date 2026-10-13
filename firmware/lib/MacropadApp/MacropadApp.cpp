@@ -21,19 +21,16 @@ char MacropadApp::currentLabel[32] = "IDLE";
 EncoderMode currentEncoderMode = MODE_VOL;
 
 void MacropadApp::begin() {
-    delay(2000); // Allow hardware to stabilize
-    Serial.println("[SYSTEM] Booting Minimal Wired Macropad Firmware...");
+    delay(500);
     
     BoardSupport::begin();
-    LayoutLoader::begin();
     KeymapTranslator::init();
+
+    // Initialize USB stack before Serial CDC
+    UsbHid::begin();
     SerialManager::begin();
 
-    if (!LayoutLoader::begin()) {
-        Serial.println("[ERROR] Failed to load config.json from flash!");
-    } else {
-        Serial.println("[SYSTEM] Config loaded successfully.");
-    }
+    LayoutLoader::begin();
 
     MatrixScanner::begin();
     EncoderHandler::begin();
@@ -41,24 +38,16 @@ void MacropadApp::begin() {
     OledHandler::showBootAnimation();
     RgbHandler::begin();
 
-    Serial.println("[SYSTEM] Initializing Native USB Transport...");
-    UsbHid::begin();
-
-    Serial.println("[SYSTEM] Application Vector Ready.");
     OledHandler::update();
+    SerialManager::sendResponse("[SYSTEM] Application Vector Ready.\n");
 }
 
 void MacropadApp::run() {
-    // Process configuration download/upload streams and remote pings
     SerialManager::check();
-
-    // Hardware polling
     MatrixScanner::scan();
     EncoderHandler::run();
     processEvents();
-    RgbHandler::run();
-
-    delay(1); // Small delay to prevent watchdog starvation
+    delay(1);
 }
 
 void MacropadApp::processEvents() {
@@ -67,21 +56,22 @@ void MacropadApp::processEvents() {
     while (EventQueue::dequeue(event)) {
         switch (event.type) {
             case EventType::KeyPress: {
-                Serial.printf("[EVENT] Key Pressed - Layer: %d, Row: %d, Col: %d\n", currentLayer, event.row, event.col);
+                SerialManager::sendFormat(
+                    "[EVENT] Key Pressed - Layer: %d, Row: %d, Col: %d\n",
+                    currentLayer, event.row, event.col
+                );
                 
-                KeyAction action = LayoutLoader::getKeyAction(currentLayer, event.row, event.col);
+                const KeyAction& action = LayoutLoader::getKeyAction(currentLayer, event.row, event.col);
                 
                 if (!action.isValid) {
                     strncpy(currentLabel, "UNUSED", sizeof(currentLabel) - 1);
                     currentLabel[sizeof(currentLabel) - 1] = '\0';
-                    Serial.println("[LOG] Unmapped key pressed.");
                     OledHandler::update();
-                    return;
+                    break;
                 }
 
                 strncpy(currentLabel, action.label.c_str(), sizeof(currentLabel) - 1);
                 currentLabel[sizeof(currentLabel) - 1] = '\0';
-                Serial.printf("[LOG] Action Label: %s, Type: %s\n", action.label.c_str(), action.type.c_str());
 
                 if (action.type == "KEY" || action.type == "SHORTCUT") {
                     HidCode code;
@@ -97,16 +87,15 @@ void MacropadApp::processEvents() {
                 
                 if (action.type == "APP" || action.type == "SCRIPT") {
                     uint8_t packed = LayoutLoader::getPackedByte(currentLayer, event.row, event.col);
-                    Serial.printf("[CMD:%02X]\n", packed);
+                    SerialManager::sendFormat("[CMD:%02X]\n", packed);
                 }
                 
                 OledHandler::update();
                 break;
             }
+
             case EventType::KeyRelease: {
-                Serial.printf("[EVENT] Key Released - Layer: %d, Row: %d, Col: %d\n", currentLayer, event.row, event.col);
-                
-                KeyAction action = LayoutLoader::getKeyAction(currentLayer, event.row, event.col);
+                const KeyAction& action = LayoutLoader::getKeyAction(currentLayer, event.row, event.col);
                 
                 if (action.isValid && (action.type == "KEY" || action.type == "SHORTCUT")) {
                     HidCode code;
@@ -121,47 +110,43 @@ void MacropadApp::processEvents() {
                 }
                 break;
             }
+
             case EventType::EncoderCW:
-                Serial.println("[EVENT] Encoder Turned Clockwise");
                 if (currentEncoderMode == MODE_VOL) {
                     strncpy(currentLabel, "Volume Up", sizeof(currentLabel) - 1);
                     UsbHid::sendConsumerKey(0x00E9, true);
-                    delay(5);
+                    delay(2);
                     UsbHid::sendConsumerKey(0x00E9, false);
                 } else if (currentEncoderMode == MODE_LYR) {
                     currentLayer = (currentLayer + 1) % 4;
                     strncpy(currentLabel, "Next Layer", sizeof(currentLabel) - 1);
-                    Serial.printf("[LOG] Switched to Layer %d\n", currentLayer);
+                    SerialManager::sendFormat("[LOG] Switched to Layer %d\n", currentLayer);
                 }
                 currentLabel[sizeof(currentLabel) - 1] = '\0';
                 OledHandler::update();
                 break;
                 
             case EventType::EncoderCCW:
-                Serial.println("[EVENT] Encoder Turned Counter-Clockwise");
                 if (currentEncoderMode == MODE_VOL) {
                     strncpy(currentLabel, "Volume Down", sizeof(currentLabel) - 1);
                     UsbHid::sendConsumerKey(0x00EA, true);
-                    delay(5);
+                    delay(2);
                     UsbHid::sendConsumerKey(0x00EA, false);
                 } else if (currentEncoderMode == MODE_LYR) {
                     currentLayer = (currentLayer == 0) ? 3 : currentLayer - 1;
                     strncpy(currentLabel, "Previous Layer", sizeof(currentLabel) - 1);
-                    Serial.printf("[LOG] Switched to Layer %d\n", currentLayer);
+                    SerialManager::sendFormat("[LOG] Switched to Layer %d\n", currentLayer);
                 }
                 currentLabel[sizeof(currentLabel) - 1] = '\0';
                 OledHandler::update();
                 break;
                 
             case EventType::EncoderButton:
-                Serial.println("[EVENT] Encoder Button Clicked");
                 currentEncoderMode = (EncoderMode)((currentEncoderMode + 1) % 2);
                 if (currentEncoderMode == MODE_VOL) {
                     strncpy(currentLabel, "Mode: Volume", sizeof(currentLabel) - 1);
-                    Serial.println("[LOG] Encoder Mode Set: VOLUME");
                 } else {
                     strncpy(currentLabel, "Mode: Layer", sizeof(currentLabel) - 1);
-                    Serial.println("[LOG] Encoder Mode Set: LAYER");
                 }
                 currentLabel[sizeof(currentLabel) - 1] = '\0';
                 OledHandler::update();

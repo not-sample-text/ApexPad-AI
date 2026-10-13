@@ -13,7 +13,7 @@ void RgbHandler::begin() {
     pinMode(kLedPwrEnPin, OUTPUT);
     digitalWrite(kLedPwrEnPin, LOW);
     
-    // Enable LDO2 as it provides power to the NeoPixel
+    // Enable LDO2 as it provides power to the onboard status NeoPixel
     pinMode(kLdo2EnablePin, OUTPUT);
     digitalWrite(kLdo2EnablePin, HIGH);
     
@@ -26,6 +26,5 @@ void RgbHandler::begin() {
 }
 
 void RgbHandler::run() {
-    // Keeps the status LED asserted in the main loop
-    statusLed.show();
+    // No-op: Avoid bit-banging GPIO 18 every 1ms so encoder interrupts are never blocked
 }

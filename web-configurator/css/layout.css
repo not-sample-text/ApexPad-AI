@@ -11,19 +11,32 @@
     z-index: 100;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
 }
+
 .navbar .title {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     font-weight: bold;
     white-space: nowrap;
+    pointer-events: none;
 }
 
-#btn-export-json {
-    margin-left: 0;
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
     z-index: 101;
+}
+
+.nav-btn {
+    font-size: 0.8rem;
+    padding: 7px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
 /* --- Sidebar --- */
@@ -47,6 +60,7 @@
     overflow-x: hidden;
     white-space: nowrap;
 }
+
 .sidebar.collapsed {
     width: 0 !important;
     min-width: 0 !important;
@@ -54,10 +68,17 @@
     padding-right: 0 !important;
     opacity: 0;
 }
+
 .sidebar ul {
     width: 95%;
     margin: 0;
     padding: 0;
+}
+
+.sidebar-divider {
+    margin-top: 12px;
+    border-top: 1px solid #444;
+    padding-top: 12px;
 }
 
 /* Sidebar Items */
@@ -72,7 +93,6 @@
         padding 0.1s ease;
 }
 
-/* FIX: Added Active State for Headers */
 .sidebar .category-header.active {
     background-color: rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-sm);
@@ -83,12 +103,15 @@
     font-weight: bold;
     white-space: nowrap;
 }
+
 .sidebar .category:hover {
     text-decoration: underline;
 }
+
 .sidebar .category-icon {
     transition: transform 0.2s ease-in-out;
 }
+
 .sidebar .category-icon.open {
     transform: rotate(90deg);
 }
@@ -101,6 +124,7 @@
     border-left: 1px solid var(--navbar-bg-color);
     transition: max-height 0.2s ease-in-out;
 }
+
 .sidebar .key-list.open {
     max-height: 500px;
 }
@@ -121,31 +145,27 @@
         color 0.1s ease;
     border-radius: var(--radius-sm);
 }
+
 .sidebar .key-list li:hover {
     text-decoration: none;
     color: var(--text-color);
     background-color: rgba(255, 255, 255, 0.08);
 }
+
 .sidebar-item-unconfigured {
     color: var(--key-list-color);
     font-style: italic;
     opacity: 0.7;
 }
+
 .sidebar-item-configured {
     color: var(--text-color);
     font-weight: bold;
 }
+
 .sidebar-item-icon {
     font-size: 0.9rem;
     opacity: 0.8;
-}
-.sidebar .key-list.read-only-list li {
-    cursor: default;
-    opacity: 0.6;
-}
-.sidebar .key-list.read-only-list li:hover {
-    background-color: transparent;
-    color: var(--key-list-color);
 }
 
 /* --- Main Area --- */
@@ -158,8 +178,10 @@ main {
     box-sizing: border-box;
     overflow: hidden;
 }
+
 #layer-title {
-    margin-top: 40px;
+    margin-top: 25px;
+    margin-bottom: 4px;
     text-align: center;
     font-size: 1.5rem;
     font-weight: normal;
@@ -169,30 +191,31 @@ main {
     opacity: 0.8;
 }
 
+.drag-hint {
+    text-align: center;
+    font-size: 0.78rem;
+    color: #888;
+    margin-top: 0;
+}
+
 /* --- Macropad Container (The Top PCB Chassis) --- */
 .macropad-container {
     position: absolute;
-    top: 50%;
+    top: 53%;
     left: 50%;
     transform: translate(-50%, -50%);
-
     width: var(--board-width);
     height: var(--board-height);
-
     box-sizing: border-box;
-
     display: grid;
     grid-template-columns: repeat(3, var(--key-size));
     grid-template-rows: repeat(5, var(--key-size));
     gap: var(--spacing-md);
     padding: var(--spacing-xl);
-
     align-content: center;
     justify-content: center;
-
     background-color: #353535;
     border-radius: var(--radius-lg);
-
     border-top: 2px solid #444;
     border-left: 2px solid #444;
     border-right: 4px solid #1a1a1a;
