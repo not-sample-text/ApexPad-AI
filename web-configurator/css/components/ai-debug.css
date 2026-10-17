@@ -1,15 +1,24 @@
-/* --- Connection Status Pill --- */
+/* --- Connection Status & Console Pill --- */
 .status-pill {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
+    gap: 7px;
+    padding: 6px 12px;
     border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: bold;
+    font-size: 0.76rem;
+    font-weight: 500;
     cursor: pointer;
-    border: 1px solid #444;
-    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color, #444);
+    background-color: rgba(0, 0, 0, 0.35);
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease;
+    user-select: none;
+}
+
+.status-pill:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-gold, #d4af37);
 }
 
 .status-pill .status-dot {
@@ -24,33 +33,64 @@
     box-shadow: 0 0 8px #22c55e;
 }
 
-/* --- Messenger-Style Floating Chat Widget --- */
-.ai-chat-widget {
-    position: fixed;
-    bottom: 0;
-    right: 28px;
-    width: 350px;
-    background-color: var(--sidebar-bg-color);
-    border: 1px solid #444;
-    border-bottom: none;
-    border-radius: 12px 12px 0 0;
-    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.55);
-    z-index: 500;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.status-console-icon {
+    font-size: 0.9rem;
+    color: var(--text-muted, #999);
+    margin-left: 3px;
+    padding-left: 7px;
+    border-left: 1px solid var(--border-color, #444);
 }
 
-.ai-chat-header {
+.status-pill:hover .status-console-icon {
+    color: var(--text-color);
+}
+
+/* Navbar AI Toggle Button */
+.ai-nav-toggle i {
+    color: var(--accent-gold, #d4af37);
+}
+
+.ai-nav-toggle.active {
+    border-color: var(--accent-gold, #d4af37);
+    background-color: rgba(212, 175, 55, 0.12);
+}
+
+/* --- Right AI Sidebar --- */
+.ai-sidebar {
+    position: relative;
+    width: 370px;
+    min-width: 370px;
+    height: 100%;
+    background-color: var(--sidebar-bg-color);
+    border-left: 1px solid var(--border-color, #3a3a3a);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+    transition:
+        width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.2s ease;
+}
+
+.ai-sidebar.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    border-left: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ai-sidebar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 14px;
+    padding: 16px 18px;
     background-color: var(--navbar-bg-color);
-    border-bottom: 1px solid #3a3a3a;
-    cursor: pointer;
-    user-select: none;
+    border-bottom: 1px solid var(--border-color, #3a3a3a);
+    flex-shrink: 0;
 }
 
 .ai-chat-title {
@@ -60,32 +100,34 @@
 }
 
 .ai-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: rgba(0, 229, 255, 0.15);
-    border: 1px solid #00e5ff;
-    color: #00e5ff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: var(--accent-gold, #d4af37);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    flex-shrink: 0;
 }
 
 .ai-chat-title div {
     display: flex;
     flex-direction: column;
+    gap: 2px;
 }
 
 .ai-chat-title strong {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--text-color);
     line-height: 1.1;
 }
 
 .ai-chat-title small {
-    font-size: 0.68rem;
-    color: #888;
+    font-size: 0.72rem;
+    color: var(--text-muted, #888);
 }
 
 .ai-header-controls {
@@ -96,40 +138,32 @@
 
 .ai-icon-btn {
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--text-color);
-    padding: 5px 7px;
+    padding: 6px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.05rem;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.ai-icon-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+.ai-icon-btn:hover,
+.ai-icon-btn.active {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-color, #444);
 }
 
-.ai-chat-body {
-    display: flex;
-    flex-direction: column;
-    height: 390px;
-    transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-chat-widget.collapsed .ai-chat-body {
-    height: 0;
-    overflow: hidden;
-}
-
+/* --- Collapsible Settings Drawer --- */
 .ai-settings-drawer {
-    padding: 10px 12px;
-    background-color: rgba(0, 0, 0, 0.35);
-    border-bottom: 1px solid #3a3a3a;
+    padding: 14px 18px;
+    background-color: rgba(0, 0, 0, 0.28);
+    border-bottom: 1px solid var(--border-color, #3a3a3a);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
 .ai-settings-drawer.hidden {
@@ -139,95 +173,133 @@
 .ai-settings-drawer .control-group {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
 }
 
 .ai-settings-drawer label {
-    font-size: 0.7rem;
-    color: #aaa;
-    font-weight: bold;
+    font-size: 0.72rem;
+    color: var(--text-muted, #aaa);
+    font-weight: 500;
 }
 
 .ai-settings-drawer select,
 .ai-settings-drawer input {
-    padding: 6px 8px;
-    font-size: 0.78rem;
+    padding: 7px 10px;
+    font-size: 0.8rem;
 }
 
+/* --- Chat Message History --- */
 .ai-chat-log {
     flex-grow: 1;
     overflow-y: auto;
-    padding: 12px;
+    padding: 18px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background-color: rgba(0, 0, 0, 0.18);
+    gap: 12px;
+    background-color: rgba(0, 0, 0, 0.14);
 }
 
 .ai-msg {
-    font-size: 0.8rem;
-    line-height: 1.4;
-    padding: 8px 12px;
-    border-radius: 14px;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    padding: 10px 14px;
+    border-radius: 12px;
     word-wrap: break-word;
-    max-width: 85%;
+    max-width: 88%;
 }
 
 .ai-msg.user {
-    background-color: #2563eb;
-    color: #fff;
+    background-color: var(--accent-gold, #d4af37);
+    color: #14213d;
+    font-weight: 600;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
 }
 
 .ai-msg.assistant {
     background-color: var(--navbar-bg-color);
-    border: 1px solid #444;
+    border: 1px solid var(--border-color, #3f3f46);
     color: var(--text-color);
     align-self: flex-start;
     border-bottom-left-radius: 4px;
 }
 
-.ai-composer {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    background-color: var(--navbar-bg-color);
-    border-top: 1px solid #3a3a3a;
+/* --- Card-Style Input Composer --- */
+.ai-composer-wrapper {
+    padding: 14px 18px 18px 18px;
+    background-color: var(--sidebar-bg-color);
+    border-top: 1px solid var(--border-color, #3a3a3a);
+    flex-shrink: 0;
 }
 
-.ai-composer textarea {
-    flex-grow: 1;
+.ai-composer-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    background-color: var(--navbar-bg-color);
+    border: 1px solid var(--border-color, #4a4a4a);
+    border-radius: 10px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.ai-composer-card:focus-within {
+    border-color: var(--accent-gold, #d4af37);
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+.ai-composer-card textarea {
+    width: 100%;
     box-sizing: border-box;
     resize: none;
-    padding: 8px 10px;
-    border-radius: 18px;
-    background-color: var(--sidebar-bg-color);
-    border: 1px solid #555;
+    border: none;
+    background: transparent;
     color: var(--text-color);
     font-family: inherit;
-    font-size: 0.8rem;
-    max-height: 70px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    padding: 2px 0;
     outline: none;
 }
 
-.ai-composer textarea:focus {
-    border-color: #00e5ff;
+.ai-composer-card textarea::placeholder {
+    color: var(--text-muted, #777);
+}
+
+.ai-composer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ai-composer-hint {
+    font-size: 0.68rem;
+    color: var(--text-muted, #777);
+    user-select: none;
 }
 
 .ai-send-btn {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    border-radius: 50%;
-    background-color: #2563eb;
-    color: #fff;
-    display: flex;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background-color: var(--accent-gold, #d4af37);
+    color: #14213d;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 5px;
     flex-shrink: 0;
-    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+}
+
+.ai-send-btn:hover {
+    background-color: #e5be3e;
 }
 
 .ai-send-btn:disabled {
@@ -242,8 +314,8 @@
     max-width: 680px;
     margin: 0 auto 10px auto;
     padding: 10px 16px;
-    background: rgba(0, 229, 255, 0.1);
-    border: 1px solid #00e5ff;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid var(--accent-gold, #d4af37);
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
@@ -264,7 +336,7 @@
 
 .sandbox-info i {
     font-size: 1.3rem;
-    color: #00e5ff;
+    color: var(--accent-gold, #d4af37);
 }
 
 .sandbox-info div {
@@ -274,7 +346,7 @@
 
 .sandbox-info span {
     font-size: 0.75rem;
-    color: #bbb;
+    color: var(--text-muted, #bbb);
 }
 
 .sandbox-actions {
@@ -293,7 +365,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid var(--border-color, #444);
     padding-bottom: 12px;
     margin-bottom: 15px;
 }
@@ -313,7 +385,7 @@
 
 .stat-box {
     background-color: var(--navbar-bg-color);
-    border: 1px solid #444;
+    border: 1px solid var(--border-color, #444);
     border-radius: var(--radius-sm);
     padding: 8px 10px;
     display: flex;
@@ -323,7 +395,7 @@
 
 .stat-label {
     font-size: 0.7rem;
-    color: #888;
+    color: var(--text-muted, #888);
 }
 
 .daemon-actions-bar {
@@ -341,7 +413,7 @@
 .debug-log-output {
     background-color: #111;
     color: #22c55e;
-    border: 1px solid #333;
+    border: 1px solid var(--border-color, #333);
     border-radius: var(--radius-sm);
     padding: 10px;
     height: 260px;

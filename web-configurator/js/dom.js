@@ -37,10 +37,9 @@ export const dom = {
         skipBtn: document.getElementById("btn-welcome-skip")
     },
     ai: {
-        widget: document.getElementById("ai-chat-widget"),
-        header: document.getElementById("ai-chat-header"),
-        toggleBtn: document.getElementById("btn-ai-toggle"),
-        toggleIcon: document.getElementById("ai-toggle-icon"),
+        sidebar: document.getElementById("ai-sidebar"),
+        navToggleBtn: document.getElementById("btn-toggle-ai-sidebar"),
+        closeBtn: document.getElementById("btn-ai-close"),
         settingsBtn: document.getElementById("btn-ai-settings"),
         settingsDrawer: document.getElementById("ai-settings-drawer"),
         targetLayer: document.getElementById("ai-target-layer"),

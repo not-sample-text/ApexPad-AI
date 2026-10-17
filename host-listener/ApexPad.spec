@@ -35,3 +35,11 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+hiddenimports=[
+        'ai',
+        'ai.schemas',
+        'ai.llm_engine',
+        'ai.ml_optimizer',
+        'ai.orchestrator',
+    ],

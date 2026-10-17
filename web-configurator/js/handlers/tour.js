@@ -19,9 +19,9 @@ export const TourHandler = {
             text: "Scroll the knob to adjust system volume. Click the knob to toggle into Layer Navigation mode."
         },
         {
-            target: "#ai-chat-widget",
-            title: "Floating AI Assistant",
-            text: "Click the bottom-right chat bar to open the AI Layout Assistant. Describe misclicks or grouping preferences and preview proposed changes live."
+            target: "#btn-toggle-ai-sidebar",
+            title: "Optional AI Assistant",
+            text: "Want help optimizing your layout? Click here anytime to open the AI Assistant sidebar and generate ergonomic key arrangements offline."
         },
         {
             target: "#btn-upload-pad",

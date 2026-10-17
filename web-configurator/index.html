@@ -4,46 +4,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Roboto Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+
+    <link rel="icon" type="image/png" href="assets/favicon-dark.png" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/png" href="assets/favicon-light.png" media="(prefers-color-scheme: light)">
+
     <title>ApexPad AI Configurator</title>
 </head>
 
 <body>
     <div class="navbar">
-        <div class="hamburger-menu active" id="hamburger-btn">
-            <div class="bar"></div>
-            <div class="bar"></div>
-            <div class="bar"></div>
+        <div class="navbar-left">
+            <div class="hamburger-menu active" id="hamburger-btn">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+
+            <div id="device-status-pill" class="status-pill disconnected"
+                title="Click to open Hardware & Live Debug Console">
+                <span class="status-dot"></span>
+                <span id="device-status-text">Offline</span>
+                <i class="ti ti-terminal-2 status-console-icon"></i>
+            </div>
         </div>
+
         <div class="title">ApexPad AI Configurator</div>
 
         <div class="navbar-actions">
-            <div id="device-status-pill" class="status-pill disconnected"
-                title="Click to open Hardware & Debug Console">
-                <span class="status-dot"></span>
-                <span id="device-status-text">Offline</span>
-            </div>
-
-            <button id="btn-open-debug" class="btn-secondary nav-btn" title="Hardware & Live Debug Console">
-                <i class="ti ti-terminal-2"></i> Console
-            </button>
-
-            <input type="file" id="import-file-input" hidden accept=".json">
-            <button id="btn-import-json" class="btn-secondary nav-btn">
-                <i class="ti ti-file-import"></i> Import
-            </button>
-            <button id="btn-export-json" class="btn-secondary nav-btn">
-                <i class="ti ti-download"></i> Export
-            </button>
             <button id="btn-upload-pad" class="btn-primary nav-btn">
                 <i class="ti ti-cpu"></i> Upload to Pad
+            </button>
+            <div class="navbar-divider"></div>
+            <button id="btn-toggle-ai-sidebar" class="btn-secondary nav-btn ai-nav-toggle"
+                title="Toggle AI Layout Assistant">
+                <i class="ti ti-sparkles"></i> AI Assistant
             </button>
         </div>
     </div>
 
+    <!-- LEFT SIDEBAR: LAYERS & FILE IO FOOTER -->
     <div class="sidebar" id="main-sidebar">
-        <div id="sidebar-layers-view">
+        <div id="sidebar-layers-view" class="sidebar-layers-scroll">
             <ul>
                 <li>
                     <span class="category-header" data-layer="0">
@@ -75,8 +84,19 @@
                 </li>
             </ul>
         </div>
+
+        <div class="sidebar-footer">
+            <input type="file" id="import-file-input" hidden accept=".json">
+            <button id="btn-import-json" class="btn-secondary sidebar-io-btn" title="Import JSON Config">
+                <i class="ti ti-file-import"></i> Import
+            </button>
+            <button id="btn-export-json" class="btn-secondary sidebar-io-btn" title="Export JSON Backup">
+                <i class="ti ti-download"></i> Export
+            </button>
+        </div>
     </div>
 
+    <!-- CENTER CANVAS: MACROPAD VISUALIZER -->
     <main>
         <div id="ai-sandbox-banner" class="ai-sandbox-banner hidden">
             <div class="sandbox-info">
@@ -128,60 +148,65 @@
         </div>
     </main>
 
-    <!-- MESSENGER-STYLE FLOATING AI CHAT WIDGET -->
-    <div id="ai-chat-widget" class="ai-chat-widget collapsed">
-        <div id="ai-chat-header" class="ai-chat-header">
+    <!-- RIGHT SIDEBAR: AI LAYOUT ASSISTANT (Closed by Default) -->
+    <aside id="ai-sidebar" class="ai-sidebar collapsed">
+        <div class="ai-sidebar-header">
             <div class="ai-chat-title">
                 <span class="ai-avatar"><i class="ti ti-sparkles"></i></span>
                 <div>
                     <strong>AI Layout Assistant</strong>
-                    <small>Ollama + Simulated Annealing</small>
+                    <small>Ollama · Simulated Annealing</small>
                 </div>
             </div>
             <div class="ai-header-controls">
-                <button id="btn-ai-settings" class="ai-icon-btn" title="AI Scope & Model Settings">
+                <button id="btn-ai-settings" class="ai-icon-btn" title="Target Scope & Model Settings">
                     <i class="ti ti-adjustments-horizontal"></i>
                 </button>
-                <button id="btn-ai-toggle" class="ai-icon-btn" title="Minimize / Expand">
-                    <i class="ti ti-chevron-up" id="ai-toggle-icon"></i>
+                <button id="btn-ai-close" class="ai-icon-btn" title="Close AI Sidebar">
+                    <i class="ti ti-x"></i>
                 </button>
             </div>
         </div>
 
-        <div id="ai-chat-body" class="ai-chat-body">
-            <div id="ai-settings-drawer" class="ai-settings-drawer hidden">
-                <div class="control-group">
-                    <label for="ai-target-layer">Target Scope</label>
-                    <select id="ai-target-layer">
-                        <option value="active">Active Layer Only</option>
-                        <option value="all">All Editable Layers (2–4)</option>
-                        <option value="1">Layer 2 - Shortcuts</option>
-                        <option value="2">Layer 3 - Commands</option>
-                        <option value="3">Layer 4 - Launcher</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label for="ai-model-input">Local Ollama Model</label>
-                    <input type="text" id="ai-model-input" value="llama3.2" placeholder="e.g., llama3.2">
-                </div>
+        <!-- Collapsible Settings Drawer (Hidden by default) -->
+        <div id="ai-settings-drawer" class="ai-settings-drawer hidden">
+            <div class="control-group">
+                <label for="ai-target-layer">Target Scope</label>
+                <select id="ai-target-layer">
+                    <option value="active">Active Layer Only</option>
+                    <option value="all">All Editable Layers (2–4)</option>
+                    <option value="1">Layer 2 - Shortcuts</option>
+                    <option value="2">Layer 3 - Commands</option>
+                    <option value="3">Layer 4 - Launcher</option>
+                </select>
             </div>
-
-            <div id="ai-chat-log" class="ai-chat-log">
-                <div class="ai-msg assistant">
-                    Hi! Tell me which keys you misclick or how you want your layer grouped, and I'll generate an
-                    ergonomic layout preview.
-                </div>
-            </div>
-
-            <div class="ai-composer">
-                <textarea id="ai-prompt-input" rows="1"
-                    placeholder="Ask AI to rearrange keys... (Enter to send)"></textarea>
-                <button id="btn-ai-optimize" class="ai-send-btn" title="Send (Enter)">
-                    <i class="ti ti-send"></i>
-                </button>
+            <div class="control-group">
+                <label for="ai-model-input">Local Ollama Model</label>
+                <input type="text" id="ai-model-input" value="llama3.2" placeholder="e.g., llama3.2">
             </div>
         </div>
-    </div>
+
+        <div id="ai-chat-log" class="ai-chat-log">
+            <div class="ai-msg assistant">
+                Hi! Tell me which keys you misclick or how you want your layer grouped, and I'll generate an ergonomic
+                layout preview.
+            </div>
+        </div>
+
+        <!-- Card-Style Input Box -->
+        <div class="ai-composer-wrapper">
+            <div class="ai-composer-card">
+                <textarea id="ai-prompt-input" rows="3"
+                    placeholder="Describe what feels awkward or how you'd like to group your keys..."></textarea>
+                <div class="ai-composer-footer">
+                    <span class="ai-composer-hint">Enter to send · Shift+Enter for new line</span>
+                    <button id="btn-ai-optimize" class="ai-send-btn" title="Generate Layout Suggestion">
+                        <i class="ti ti-send"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
 
     <!-- KEY EDIT MODAL -->
     <div id="config-modal" class="modal-overlay hidden">

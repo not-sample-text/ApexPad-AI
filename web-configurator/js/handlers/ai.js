@@ -6,24 +6,21 @@ import { PersistenceHandler } from "../utils/storage.js";
 import { OLEDHandler } from "./oled.js";
 
 let lastLogId = 0;
+let lastSyncStatus = "IDLE";
 
 export const AIHandler = {
-    toggleWidget: (forceExpand = null) => {
-        if (!dom.ai.widget) return;
-        const isCollapsed = dom.ai.widget.classList.contains("collapsed");
-        const shouldExpand = forceExpand !== null ? forceExpand : isCollapsed;
+    toggleSidebar: (forceOpen = null) => {
+        if (!dom.ai.sidebar) return;
+        const isCollapsed = dom.ai.sidebar.classList.contains("collapsed");
+        const shouldOpen = forceOpen !== null ? forceOpen : isCollapsed;
 
-        if (shouldExpand) {
-            dom.ai.widget.classList.remove("collapsed");
-            if (dom.ai.toggleIcon) {
-                dom.ai.toggleIcon.className = "ti ti-minus";
-            }
-            setTimeout(() => dom.ai.promptInput?.focus(), 150);
+        if (shouldOpen) {
+            dom.ai.sidebar.classList.remove("collapsed");
+            dom.ai.navToggleBtn?.classList.add("active");
+            setTimeout(() => dom.ai.promptInput?.focus(), 200);
         } else {
-            dom.ai.widget.classList.add("collapsed");
-            if (dom.ai.toggleIcon) {
-                dom.ai.toggleIcon.className = "ti ti-chevron-up";
-            }
+            dom.ai.sidebar.classList.add("collapsed");
+            dom.ai.navToggleBtn?.classList.remove("active");
         }
     },
 
@@ -80,7 +77,7 @@ export const AIHandler = {
         AIHandler.appendMessage("user", prompt);
         dom.ai.promptInput.value = "";
         dom.ai.optimizeBtn.disabled = true;
-        dom.ai.optimizeBtn.innerHTML = `<i class="ti ti-loader"></i>`;
+        dom.ai.optimizeBtn.innerHTML = `<i class="ti ti-loader"></i> Thinking...`;
 
         try {
             const baselineConfig = state.aiPreview.active
@@ -143,7 +140,7 @@ export const AIHandler = {
             AIHandler.appendMessage("assistant", `Error: ${err.message}`);
         } finally {
             dom.ai.optimizeBtn.disabled = false;
-            dom.ai.optimizeBtn.innerHTML = `<i class="ti ti-send"></i>`;
+            dom.ai.optimizeBtn.innerHTML = `<i class="ti ti-send"></i> Send`;
         }
     },
 
@@ -202,9 +199,14 @@ export const AIHandler = {
             dom.debug.keysVal.innerText = status.total_keypresses ?? 0;
             dom.debug.layersVal.innerText = status.layer_switches ?? 0;
 
-            if (status.sync_status === "RECOVER_SUCCESS") {
+            // Only trigger recovery load once on the rising edge of RECOVER_SUCCESS
+            if (
+                status.sync_status === "RECOVER_SUCCESS" &&
+                lastSyncStatus !== "RECOVER_SUCCESS"
+            ) {
                 await PersistenceHandler.loadFromBackendOrLocal();
             }
+            lastSyncStatus = status.sync_status || "IDLE";
 
             if (!dom.debug.modal.classList.contains("hidden")) {
                 const logRes = await fetch(`/api/logs?since=${lastLogId}`, {
@@ -235,20 +237,26 @@ export const AIHandler = {
     },
 
     init: () => {
-        // Messenger header click to expand/collapse
-        if (dom.ai.header) {
-            dom.ai.header.addEventListener("click", (e) => {
-                if (e.target.closest("#btn-ai-settings")) return;
-                AIHandler.toggleWidget();
-            });
+        if (dom.ai.navToggleBtn) {
+            dom.ai.navToggleBtn.addEventListener("click", () =>
+                AIHandler.toggleSidebar()
+            );
+        }
+
+        if (dom.ai.closeBtn) {
+            dom.ai.closeBtn.addEventListener("click", () =>
+                AIHandler.toggleSidebar(false)
+            );
         }
 
         // Settings gear drawer toggle
         if (dom.ai.settingsBtn) {
-            dom.ai.settingsBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                AIHandler.toggleWidget(true);
+            dom.ai.settingsBtn.addEventListener("click", () => {
                 dom.ai.settingsDrawer.classList.toggle("hidden");
+                dom.ai.settingsBtn.classList.toggle(
+                    "active",
+                    !dom.ai.settingsDrawer.classList.contains("hidden")
+                );
             });
         }
 
